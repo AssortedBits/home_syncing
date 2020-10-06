@@ -1,0 +1,1 @@
+/usr/bin/rsync -vrulpHtz --delete --log-file=/home/keith/rsynclog.txt -e "/usr/bin/ssh -p 22" /home/keith/family/synced/docs/ acloud:/home/keith/storage/synced/docs/ | /usr/bin/tee $0".log"

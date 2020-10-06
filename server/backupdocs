@@ -1,0 +1,7 @@
+#!/bin/bash -v
+
+source ~/scripts/backupbooks
+source ~/scripts/backupkeith
+source ~/scripts/backupmelanie
+
+# read -p "script finished. press any key to continue"

@@ -1,0 +1,4 @@
+#!/bin/bash -v
+
+tar cj ~/storage/synced/docs/bookkeeping | gpg -c --batch --passphrase-fd 1 --passphrase-file /home/keith/.synced-passphrase > ice-bookkeeping-`date +%Y%m%d`.tar.bz2.gpg && trickle -s -u 128 s3cmd put ice-bookkeeping-*gpg s3://totallyawesomebucket && rm ice-bookkeeping*
+

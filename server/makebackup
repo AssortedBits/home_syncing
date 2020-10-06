@@ -1,0 +1,4 @@
+#!/bin/bash -v
+tar cj ~/storage/synced | gpg -c --batch --passphrase-fd 1 --passphrase-file /home/keith/.synced-passphrase > ~/othersynced-`date +%Y%m%d`.tar.bz2.gpg
+
+read -p "script finished. press any key to continue"

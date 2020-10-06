@@ -1,0 +1,1 @@
+/usr/bin/rsync -vrulpHtzn --delete -e "/usr/bin/ssh -p 22" acloud:/home/keith/storage/synced/docs/ ~/family/synced/docs/ | /usr/bin/tee $0".log"
