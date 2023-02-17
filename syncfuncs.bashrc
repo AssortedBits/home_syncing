@@ -1,17 +1,24 @@
-function BackupDir {
+function MakeBackupFile {
 	
 	local -
 	set -o pipefail
 
-	inputDir=$(printf $1 | sed 's/\/$//g')
+	inputItem=$(printf $1 | sed 's/\/$//g')
 	[ $? -eq 0 ] || return 1
-	outName=$(basename $inputDir)
+	outName=$(basename $inputItem)
 	[ $? -eq 0 ] || return 1
-	ext=.tar.bz2.gpg
+	ext=
+	if [ -d "$inputItem" ]; then
+		gpgInputCmd="tar cj"
+		ext=.tar
+	else
+		gpgInputCmd="cat"
+	fi
+	ext=$ext"".bz2.gpg
 	outDir=~
 	outFile=$outDir/$outName$ext
 
-	tar cj $inputDir | gpg -c --batch --passphrase-fd 1 --passphrase-file /home/keith/.pw > $outFile
+	$gpgInputCmd $inputItem | gpg -c --batch --passphrase-fd 1 --passphrase-file /home/keith/.pw > $outFile
 	[ $? -eq 0 ] || return 1
 
 	echo $outDir
@@ -25,10 +32,10 @@ function BackupToAws {
 	local -
 	set -o pipefail
 
-	inputDir=$(printf $1 | sed 's/\/$//g')
+	inputItem=$(printf $1 | sed 's/\/$//g')
 	expectedNumberOfVals=3
 	#One extra line for the number-of-vals output.
-	returnedVals=($(BackupDir $inputDir 2>&1 | tee /dev/tty | tail -n $(( $expectedNumberOfVals + 1)) ))
+	returnedVals=($(MakeBackupFile $inputItem 2>&1 | tee /dev/tty | tail -n $(( $expectedNumberOfVals + 1)) ))
 	[ $? -eq 0 ] || return 1
 
 	#Last element contains number of returned vals.
