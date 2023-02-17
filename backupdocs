@@ -1,0 +1,12 @@
+#!/bin/bash -v
+
+THIS_DIR=$(dirname -- "$(readlink -f -- "$0")"
+
+source $THIS_DIR/syncfuncs.bashrc
+
+dirs=$(ls ~/family/synced/docs/)
+
+for d in $dirs; do
+	BackupToAws ~/family/synced/docs/$d
+done
+

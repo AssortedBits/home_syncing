@@ -1,1 +1,0 @@
-trickle -s -u 128 s3cmd put ice-docs-*gpg s3://totallyawesomebucket && rm othersynced*
