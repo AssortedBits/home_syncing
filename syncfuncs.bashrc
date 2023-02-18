@@ -1,63 +1,67 @@
-function MakeBackupFile {
-	
+function Backup {
+
 	local -
 	set -o pipefail
 
 	inputItem=$(printf $1 | sed 's/\/$//g')
 	[ $? -eq 0 ] || return 1
+	if [ -z "$inputItem" ]; then
+		echo "empty arg 'inputItem' at $0:$LINENO" >&2
+	fi
+
+	archiveOpt=$2
+	snapshotOpt=$3
+
 	outName=$(basename $inputItem)
 	[ $? -eq 0 ] || return 1
-	ext=
+
+	readFileCmd=
 	if [ -d "$inputItem" ]; then
-		gpgInputCmd="tar cj"
-		ext=.tar
+		readFileCmd="tar c"
+		outName=$outName"".tar
 	else
-		gpgInputCmd="cat"
-	fi
-	ext=$ext"".bz2.gpg
-	outDir=~
-	outFile=$outDir/$outName$ext
-
-	$gpgInputCmd $inputItem | gpg -c --batch --passphrase-fd 1 --passphrase-file /home/keith/.pw > $outFile
-	[ $? -eq 0 ] || return 1
-
-	echo $outDir
-	echo $outName
-	echo $ext
-	echo 3
-}
-
-function BackupToAws {
-
-	local -
-	set -o pipefail
-
-	inputItem=$(printf $1 | sed 's/\/$//g')
-	expectedNumberOfVals=3
-	#One extra line for the number-of-vals output.
-	returnedVals=($(MakeBackupFile $inputItem 2>&1 | tee /dev/tty | tail -n $(( $expectedNumberOfVals + 1)) ))
-	[ $? -eq 0 ] || return 1
-
-	#Last element contains number of returned vals.
-	if [ ${returnedVals[$(( ${#returnedVals[@]} - 1 ))]} -ne $expectedNumberOfVals ]; then
-		echo "code out of sync at $0:$LINENO";
-		return 1
+		readFileCmd="cat"
 	fi
 
-	outDir=${returnedVals[0]}
-	outName=${returnedVals[1]}
-	ext=${returnedVals[2]}
+	archiveFileCmd=
+	case "$archiveOpt" in
+		asIs)
+			;;
+		compressedAndEncrypted)
+			archiveFileCmd="$archiveFileCmd | bzip2 -c"
+			outName=$outName"".bz2
+			;& #fall through
+		encrypted)
+			archiveFileCmd="$archiveFileCmd | gpg -c --batch --passphrase-fd 1 --passphrase-file /home/keith/.pw"
+			outName=$outName"".gpg
+			;;
+		*)
+			echo "invalid value '$encryptedOrPlaintext' for 'encryptedOrPlaintext' param at $0:$LINENO" >&2
+			return 1
+			;;
+	esac
 
-	permLatestFileName=$outName$ext
-	expiringCopyName=ice-$outName-$(date +%Y%m%d)$ext
+	s3BucketUrl=s3://totallyawesomebucket 
+	sendToBackupCmd=" | s3cmd put - $s3BucketUrl/$outName"
+
+	cmd="$readFileCmd $inputItem $archiveFileCmd $sendToBackupCmd"
+	#read -p "$cmd ?"
+	eval "$cmd"
 	[ $? -eq 0 ] || return 1
-
-	bucketUrl=s3://totallyawesomebucket 
-
-	s3cmd put ~/$permLatestFileName $bucketUrl && rm ~/$permLatestFileName
-	[ $? -eq 0 ] || return 1
-	s3cmd cp $bucketUrl/$permLatestFileName $bucketUrl/$expiringCopyName
-	[ $? -eq 0 ] || return 1
-
+	
+	case "$snapshotOpt" in
+		withSnapshot)
+			snapshotName=ice-$(date +%Y%m%d)-$outName
+			[ $? -eq 0 ] || return 1
+			s3cmd cp $s3BucketUrl/"$outName" $s3BucketUrl/"$snapshotName"
+			[ $? -eq 0 ] || return 1
+			;;
+		noSnapshot)
+			;;
+		*)
+			echo "invalid value '$snapshotOpt' for param 'snapShotOpt' at $0:$LINENO"
+			;;
+	esac
+	
 }
 

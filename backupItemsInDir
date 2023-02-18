@@ -1,16 +1,14 @@
-#!/bin/bash -v
+#!/bin/bash
 
 #remove any trailing slash
 dirToProcess=$(echo $1 | sed 's/[/]\+$//g')
+archiveOpt=$2
+snapshotOpt=$3
 
-if [ ! -d "$dirToProcess" ]; then
-	echo "'$dirToProcess' is not a directory"
-fi
-
-THIS_DIR=$(dirname -- "$(readlink -f -- "$0")"
-source $THIS_DIR/syncfuncs.bashrc
+THIS_DIR=$(dirname -- "$(readlink -f -- "$0")")
+. $THIS_DIR/syncfuncs.bashrc
 
 for item in $(ls $dirToProcess); do
-	BackupToAws ~/family/synced/docs/$items
+	Backup $dirToProcess/$item $archiveOpt $snapshotOpt
 done
 

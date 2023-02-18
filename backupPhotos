@@ -1,4 +1,4 @@
-#!/bin/bash -v
+#!/bin/bash
 tar c ~/storage/synced/photos_backup -f photos-`date +%Y%m%d`.tar && curl -T photos*tar -u keith:d1ngl3d0ng1s ftp://leequs.homeip.net:200/keith/ && rm photos*tar
 
 read -p "script finished. press any key to continue"

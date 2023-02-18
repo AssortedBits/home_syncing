@@ -1,6 +1,6 @@
-#!/bin/bash -v
+#!/bin/bash
 
-THIS_DIR=$(dirname -- "$(readlink -f -- "$0")"
+THIS_DIR=$(dirname -- "$(readlink -f -- "$0")")
 
-$THIS_DIR/backupItemsInDir ~/family/synced/pws
+$THIS_DIR/backupItemsInDir ~/family/synced/pws asIs noSnapshot
 
